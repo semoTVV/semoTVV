@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kick Yayınım - semihcagis</title>
+  <style>
+    .kick-container {
+      border: 1px solid #4CAF50;
+      border-radius: 8px;
+      box-shadow: 4px 4px 15px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+      overflow: hidden;
+      background-color: #f9f9f9;
+    }
+
+    .live-header {
+      background-color: #4CAF50;
+      color: white;
+      padding: 15px;
+      text-align: center;
+      font-weight: bold;
+      border-top-left-radius: 8px;
+      border-top-right-radius: 8px;
+    }
+
+    .offline-header {
+      background-color: #f44336;
+      color: white;
+      padding: 15px;
+      text-align: center;
+      font-weight: bold;
+      border-top-left-radius: 8px;
+      border-top-right-radius: 8px;
+    }
+
+    .loading-header {
+      background-color: #ff9800;
+      color: white;
+      padding: 15px;
+      text-align: center;
+      font-weight: bold;
+      border-top-left-radius: 8px;
+      border-top-right-radius: 8px;
+    }
+
+    .embed-responsive {
+      position: relative;
+      width: 100%;
+      padding-bottom: 56.25%; /* 16:9 en boy oranı için */
+      height: 0;
+    }
+
+    .embed-responsive iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
+    .offline-message {
+      padding: 20px;
+      text-align: center;
+      color: #777;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="kick-embed-container" class="kick-container">
+    <div id="kick-header" class="loading-header">Yayın Durumu Kontrol Ediliyor...</div>
+    <div id="kick-embed" class="embed-responsive">
+      </div>
+  </div>
+
+  <script>
+    function checkKickLiveStatus(channelName, containerId, headerId, embedId) {
+      const container = document.getElementById(containerId);
+      const header = document.getElementById(headerId);
+      const embedContainer = document.getElementById(embedId);
+
+      if (!container || !header || !embedContainer) {
+        console.error("Gerekli HTML elementleri bulunamadı.");
+        return;
+      }
+
+      fetch(`https://kick.com/api/v1/channels/${channelName}`)
+        .then(response => response.json())
+        .then(data => {
+          console.log("API Cevabı:", data); // Tüm API cevabını konsola yazdır
+
+          // Canlı yayın durumunu kontrol etmek için daha kapsamlı bir kontrol
+          if (data && (data.is_live === true || data.livestream !== null)) {
+            header.className = "live-header";
+            header.textContent = `${channelName} Şu Anda Yayında!`;
+            embedContainer.innerHTML = `<iframe src="https://player.kick.com/${channelName}" scrolling="no" allowfullscreen></iframe>`;
+          } else {
+            header.className = "offline-header";
+            header.textContent = `${channelName} Şu Anda Yayında Değil.`;
+            embedContainer.innerHTML = `<p class="offline-message">Bir sonraki yayını kaçırmayın!</p>`;
+          }
+        })
+        .catch(error => {
+          console.error("Kick kanal bilgileri alınırken bir hata oluştu:", error);
+          header.className = "loading-header";
+          header.textContent = "Yayın Durumu Kontrol Edilemedi.";
+          embedContainer.innerHTML = `<p class="offline-message">Bağlantı hatası oluştu.</p>`;
+        });
+    }
+
+    // Kullanım:
+    checkKickLiveStatus("semihcagis", "kick-embed-container", "kick-header", "kick-embed");
+  </script>
+
+</body>
+</html>
